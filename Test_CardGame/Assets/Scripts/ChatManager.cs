@@ -6,9 +6,6 @@ using Colyseus;
 
 public class ChatManager : MonoBehaviour
 {
-    [SerializeField] private GameClient client;
-    private ColyseusRoom<GameState> room;
-
     [Header("UI")]
     [SerializeField] private TMP_InputField chatInputField;
     [SerializeField] private TextMeshProUGUI chatLogText;
@@ -16,15 +13,14 @@ public class ChatManager : MonoBehaviour
 
     private void Awake()
     {
-        client.OnRoomReady += SetupRoomHandlers;
-        client.OnPlayerJoined += PrintPlayerJoinMessage;
+        GameClient.client.OnRoomReady += SetupRoomHandlers;
+        GameClient.client.OnPlayerJoined += PrintPlayerJoinMessage;
         sendButton.onClick.AddListener(SendChatMessageAsync);
     }
 
     private void SetupRoomHandlers(ColyseusRoom<GameState> room)
     {
-        this.room= room;
-
+        // Print chat whenever taking a message from server
         room.RegisterMessageHandler(MessageTypes.Chat, message =>
         {
             string log = $"[{message[MessageTypes.Sender]}]: {message[MessageTypes.Message]}";
@@ -39,7 +35,7 @@ public class ChatManager : MonoBehaviour
 
     private async void SendChatMessageAsync()
     {
-        await room.Send(MessageTypes.Chat, new Message { chatMessage = chatInputField.text });
+        await GameClient.client.SendMessageToServer(MessageTypes.Chat, new Message { chatMessage = chatInputField.text });
         chatInputField.text = string.Empty;
     }
 }
